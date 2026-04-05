@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Budget Template</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #1a3a5c;
+      color: #fff;
+      padding: 28px 32px 20px;
+    }
+    .header h1 { font-size: 1.8rem; letter-spacing: 1px; }
+    .header-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .header-meta label { font-size: 0.78rem; opacity: 0.75; display: block; margin-bottom: 4px; }
+    .header-meta input {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 4px;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 0.95rem;
+      width: 180px;
+    }
+    .header-meta input::placeholder { color: rgba(255,255,255,0.5); }
+
+    /* ── Section headers ── */
+    .section-title {
+      background: #1a3a5c;
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .subsection-title {
+      background: #2e6da4;
+      color: #fff;
+      padding: 5px 16px 5px 24px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      background: #d9e6f2;
+      padding: 8px 16px;
+      text-align: left;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #1a3a5c;
+      border-bottom: 2px solid #b0c8e0;
+    }
+    thead th:not(:first-child) { text-align: right; }
+
+    tbody tr:nth-child(even) { background: #f7f9fb; }
+    tbody tr:hover { background: #eef4fa; }
+
+    td {
+      padding: 6px 16px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #e4eaf0;
+      vertical-align: middle;
+    }
+    td:not(:first-child) { text-align: right; }
+
+    td.label { padding-left: 28px; }
+    td.label-sub { padding-left: 40px; font-style: italic; color: #555; }
+
+    td input[type="number"] {
+      width: 110px;
+      border: 1px solid #c0d0e0;
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 0.88rem;
+      text-align: right;
+      background: #fff;
+      color: #222;
+    }
+    td input[type="number"]:focus {
+      outline: none;
+      border-color: #2e6da4;
+      box-shadow: 0 0 0 2px rgba(46,109,164,0.15);
+    }
+
+    /* ── Summary rows ── */
+    tr.summary td {
+      font-weight: 700;
+      background: #d9e6f2;
+      color: #1a3a5c;
+      border-top: 2px solid #b0c8e0;
+    }
+    tr.grand-total td {
+      font-weight: 700;
+      font-size: 0.95rem;
+      background: #1a3a5c;
+      color: #fff;
+      border-top: 2px solid #0d2540;
+    }
+    tr.disposable-income td {
+      font-weight: 700;
+      font-size: 1rem;
+      background: #27ae60;
+      color: #fff;
+      border-top: 3px solid #1e8449;
+    }
+    tr.disposable-income.negative td { background: #c0392b; }
+
+    /* ── Print button ── */
+    .actions {
+      padding: 20px 32px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    button {
+      padding: 9px 22px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .btn-reset { background: #e0e0e0; color: #333; }
+    .btn-print { background: #1a3a5c; color: #fff; }
+    .btn-print:hover { background: #2e6da4; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; }
+      .actions { display: none; }
+      td input[type="number"] { border: none; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Monthly Budget Planner</h1>
+    <div class="header-meta">
+      <div>
+        <label>Month</label>
+        <input type="text" id="hdr-month" placeholder="e.g. April" />
+      </div>
+      <div>
+        <label>Year</label>
+        <input type="number" id="hdr-year" placeholder="2026" />
+      </div>
+      <div>
+        <label>Name</label>
+        <input type="text" id="hdr-name" placeholder="Your name" />
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:55%">Category</th>
+        <th>Budgeted (R)</th>
+        <th>Actual (R)</th>
+        <th>Difference (R)</th>
+      </tr>
+    </thead>
+    <tbody id="budget-body">
+
+      <!-- ══ INCOME ══ -->
+      <tr><td colspan="4" class="section-title">Income</td></tr>
+      <tr data-row="bruto-income">
+        <td class="label">Bruto Income</td>
+        <td><input type="number" class="budget" placeholder="0.00" min="0" step="0.01" /></td>
+        <td><input type="number" class="actual" placeholder="0.00" min="0" step="0.01" /></td>
+        <td class="diff"></td>
+      </tr>
+      <tr class="summary" id="total-income">
+        <td>Total Income</td><td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ EXPENSES ══ -->
+      <tr><td colspan="4" class="section-title">Less: Expenses</td></tr>
+
+      <!-- Housing -->
+      <tr><td colspan="4" class="subsection-title">Housing</td></tr>
+      <tr data-row="bond"><td class="label">Bond Expenses: House</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="homeloan"><td class="label">Home Loan: FNB</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="water"><td class="label">Water &amp; Rates Payments</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="electricity"><td class="label">Electricity</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Vehicle & Transport -->
+      <tr><td colspan="4" class="subsection-title">Vehicle &amp; Transport</td></tr>
+      <tr data-row="vehicle-finance"><td class="label">Vehicle Finance (incl. Additional Insurance &amp; Covers)</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="transport"><td class="label">Transport</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="vehicle-tracking"><td class="label">Vehicle Tracking</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Insurance -->
+      <tr><td colspan="4" class="subsection-title">Insurance</td></tr>
+      <tr data-row="insurance"><td class="label">Insurance</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Communication -->
+      <tr><td colspan="4" class="subsection-title">Communication &amp; Internet</td></tr>
+      <tr data-row="cell-contracts"><td class="label">Cell Contracts</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="internet"><td class="label">Internet Usage Fee</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="telephone"><td class="label">Telephone Account</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="dstv"><td class="label">DStv</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Banking & Credit -->
+      <tr><td colspan="4" class="subsection-title">Banking &amp; Credit</td></tr>
+      <tr data-row="bank-costs"><td class="label">Bank Costs</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="credit-card"><td class="label">Credit Card</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="rcp"><td class="label">RCP: Revolving Credit Policy</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Education -->
+      <tr><td colspan="4" class="subsection-title">Studies</td></tr>
+      <tr data-row="studies"><td class="label">Studies (CPUT BTech, Unisa, USB)</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Medical -->
+      <tr><td colspan="4" class="subsection-title">Medical</td></tr>
+      <tr data-row="medical-aid"><td class="label">Medical Aid Contribution</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="doctor"><td class="label">Doctor Payments</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="medication"><td class="label">Medication</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Church -->
+      <tr><td colspan="4" class="subsection-title">Church &amp; Giving</td></tr>
+      <tr data-row="church"><td class="label">Church</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Celebrations -->
+      <tr><td colspan="4" class="subsection-title">Celebrations &amp; Seasonal</td></tr>
+      <tr data-row="birthdays"><td class="label">Birthdays (Cakes, Presents, Parties)</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="christmas"><td class="label">Christmas (Presents, Parties)</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="festive-travel"><td class="label">Festive Season Travel Funds (Petrol)</td><td><input type="number" class="budget exp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual exp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+
+      <!-- Expenses Total -->
+      <tr class="summary" id="total-expenses">
+        <td>Total Expenses</td><td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ SAVINGS ══ -->
+      <tr><td colspan="4" class="section-title">Savings</td></tr>
+      <tr data-row="emergency-savings"><td class="label">Emergency Savings</td><td><input type="number" class="budget sav" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual sav" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="fixed-savings"><td class="label">Fixed Savings</td><td><input type="number" class="budget sav" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual sav" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="retirement"><td class="label">Retirement Savings</td><td><input type="number" class="budget sav" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual sav" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="funeral"><td class="label">Funeral Savings</td><td><input type="number" class="budget sav" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual sav" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr class="summary" id="total-savings">
+        <td>Total Savings</td><td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ FINANCIAL PLANNING ══ -->
+      <tr><td colspan="4" class="section-title">Financial Planning</td></tr>
+      <tr data-row="edu-plan"><td class="label">Education Plan (CPUT, Unisa, USB)</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="electronics"><td class="label">Electronics (Tablet, Phone)</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="car-deposit"><td class="label">Car Deposit / Balloon Settlement</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="computer"><td class="label">Computer Hardware &amp; Software</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="appliances"><td class="label">Appliances (TV, Decoders, Microwaves)</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="iia"><td class="label">IIA Membership</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="car-maintenance"><td class="label">Car Maintenance</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="shops"><td class="label">Shops: Truworths / Markhams</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="vacation"><td class="label">Vacation</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="house-purchase"><td class="label">House Purchase</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="toiletries"><td class="label">Toiletries</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="birthday-exp"><td class="label">Birthday Expenses</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="baby-exp"><td class="label">Baby Expenses</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="wedding-exp"><td class="label">Wedding Expenses</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="loan-account"><td class="label">Loan Account</td><td><input type="number" class="budget fp" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual fp" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr class="summary" id="total-fp">
+        <td>Total Financial Planning</td><td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ POCKET MONEY ══ -->
+      <tr><td colspan="4" class="section-title">Pocket Money</td></tr>
+      <tr data-row="pocket-money"><td class="label">Pocket Money</td><td><input type="number" class="budget pm" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual pm" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr class="summary" id="total-pm">
+        <td>Total Pocket Money</td><td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ DEBT ══ -->
+      <tr><td colspan="4" class="section-title">Debt</td></tr>
+      <tr data-row="cell-purchased"><td class="label">Cell Phone Purchased</td><td><input type="number" class="budget debt" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual debt" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="loan-settlement"><td class="label">Loan Settlement</td><td><input type="number" class="budget debt" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual debt" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr data-row="interest-reimb"><td class="label">Interest Re-Imbursement</td><td><input type="number" class="budget debt" placeholder="0.00" step="0.01" /></td><td><input type="number" class="actual debt" placeholder="0.00" step="0.01" /></td><td class="diff"></td></tr>
+      <tr class="summary" id="total-debt">
+        <td>Total Debt</td><td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ GRAND TOTAL OUTFLOW ══ -->
+      <tr class="grand-total" id="grand-total">
+        <td>Total Outflow (Exp + Savings + Planning + Pocket + Debt)</td>
+        <td class="b-sum">0.00</td><td class="a-sum">0.00</td><td class="d-sum">0.00</td>
+      </tr>
+
+      <!-- ══ DISPOSABLE INCOME ══ -->
+      <tr class="disposable-income" id="disposable-row">
+        <td>Disposable Income</td>
+        <td id="disp-budget">0.00</td>
+        <td id="disp-actual">0.00</td>
+        <td id="disp-diff">0.00</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <button class="btn-reset" onclick="resetAll()">Reset</button>
+    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+  </div>
+</div>
+
+<script>
+  // Groups: [selector for budget inputs, selector for actual inputs, summary row id]
+  const groups = [
+    { cls: '',    summaryId: 'total-income',   sign: 1  }, // income
+    { cls: 'exp', summaryId: 'total-expenses', sign: -1 },
+    { cls: 'sav', summaryId: 'total-savings',  sign: -1 },
+    { cls: 'fp',  summaryId: 'total-fp',       sign: -1 },
+    { cls: 'pm',  summaryId: 'total-pm',       sign: -1 },
+    { cls: 'debt',summaryId: 'total-debt',     sign: -1 },
+  ];
+
+  function val(input) { return parseFloat(input.value) || 0; }
+
+  function fmt(n) {
+    return n.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function recalc() {
+    let totals = { budget: 0, actual: 0 };
+
+    // Per-row differences
+    document.querySelectorAll('tr[data-row]').forEach(row => {
+      const b = row.querySelector('input.budget');
+      const a = row.querySelector('input.actual');
+      const d = row.querySelector('td.diff');
+      if (b && a && d) {
+        const diff = val(a) - val(b);
+        d.textContent = fmt(diff);
+        d.style.color = diff < 0 ? '#c0392b' : diff > 0 ? '#27ae60' : '';
+      }
+    });
+
+    // Income total
+    const incomeB = sumClass('budget:not(.exp):not(.sav):not(.fp):not(.pm):not(.debt)');
+    const incomeA = sumClass('actual:not(.exp):not(.sav):not(.fp):not(.pm):not(.debt)');
+    setSummary('total-income', incomeB, incomeA);
+
+    // Expense / sub-group totals
+    const expB  = sumClass('budget.exp');  const expA  = sumClass('actual.exp');
+    const savB  = sumClass('budget.sav');  const savA  = sumClass('actual.sav');
+    const fpB   = sumClass('budget.fp');   const fpA   = sumClass('actual.fp');
+    const pmB   = sumClass('budget.pm');   const pmA   = sumClass('actual.pm');
+    const debtB = sumClass('budget.debt'); const debtA = sumClass('actual.debt');
+
+    setSummary('total-expenses', expB,  expA);
+    setSummary('total-savings',  savB,  savA);
+    setSummary('total-fp',       fpB,   fpA);
+    setSummary('total-pm',       pmB,   pmA);
+    setSummary('total-debt',     debtB, debtA);
+
+    const outB = expB + savB + fpB + pmB + debtB;
+    const outA = expA + savA + fpA + pmA + debtA;
+    setSummary('grand-total', outB, outA);
+
+    const dispB = incomeB - outB;
+    const dispA = incomeA - outA;
+    const dispD = dispA - dispB;
+
+    document.getElementById('disp-budget').textContent = fmt(dispB);
+    document.getElementById('disp-actual').textContent = fmt(dispA);
+    document.getElementById('disp-diff').textContent   = fmt(dispD);
+
+    const dispRow = document.getElementById('disposable-row');
+    dispRow.classList.toggle('negative', dispA < 0);
+  }
+
+  function sumClass(selector) {
+    let s = 0;
+    document.querySelectorAll(`input.${selector}`).forEach(i => s += val(i));
+    return s;
+  }
+
+  function setSummary(id, b, a) {
+    const row = document.getElementById(id);
+    row.querySelector('.b-sum').textContent = fmt(b);
+    row.querySelector('.a-sum').textContent = fmt(a);
+    const d = a - b;
+    const dCell = row.querySelector('.d-sum');
+    dCell.textContent = fmt(d);
+    dCell.style.color = (id === 'total-income')
+      ? (d >= 0 ? '#27ae60' : '#c0392b')
+      : (d <= 0 ? '#27ae60' : '#c0392b');
+  }
+
+  function resetAll() {
+    document.querySelectorAll('input[type="number"]').forEach(i => i.value = '');
+    recalc();
+  }
+
+  // Attach listeners
+  document.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('input', recalc));
+  recalc();
+</script>
+</body>
+</html>
